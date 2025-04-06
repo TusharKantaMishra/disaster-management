@@ -82,10 +82,41 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        // Weather animations
+        "float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "raindrop": {
+          "0%": { transform: "translateY(0) scale(1)", opacity: "0.7" },
+          "70%": { transform: "translateY(25px) scale(1)", opacity: "0.7" },
+          "100%": { transform: "translateY(30px) scale(0)", opacity: "0" },
+        },
+        "heavyrain": {
+          "0%": { transform: "translateY(0) scale(1)", opacity: "0.8" },
+          "80%": { transform: "translateY(35px) scale(1)", opacity: "0.8" },
+          "100%": { transform: "translateY(40px) scale(0)", opacity: "0" },
+        },
+        "snowfall": {
+          "0%": { transform: "translateY(0) rotate(0deg)", opacity: "0.9" },
+          "70%": { transform: "translateY(25px) rotate(180deg)", opacity: "0.9" },
+          "100%": { transform: "translateY(30px) rotate(360deg)", opacity: "0" },
+        },
+        "lightning": {
+          "0%, 15%, 31%, 47%, 60%, 77%, 91%, 100%": { opacity: "0" },
+          "14%, 30%, 46%, 59%, 76%, 90%": { opacity: "0.4" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        // Weather animations
+        "float": "float 3s ease-in-out infinite",
+        "pulse": "pulse 2s ease-in-out infinite",
+        "raindrop": "raindrop 1.5s ease-in infinite",
+        "heavyrain": "heavyrain 1s ease-in infinite",
+        "snowfall": "snowfall 2s ease-in-out infinite",
+        "lightning": "lightning 3s ease-out infinite",
       },
     },
   },

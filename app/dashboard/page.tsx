@@ -213,22 +213,6 @@ export default function Dashboard() {
                   </div>
                   <ArrowRightCircle className="h-5 w-5 text-primaryBlue-500 ml-auto" />
                 </Link>
-                <Link href="/settings" className="flex items-center p-4 bg-primaryBlue-50 rounded-md border border-primaryBlue-200 hover:bg-primaryBlue-100 transition-colors">
-                  <Settings className="h-8 w-8 text-primaryBlue-600 mr-3" />
-                  <div>
-                    <h3 className="font-medium text-primaryBlue-900">System Settings</h3>
-                    <p className="text-sm text-primaryBlue-700">Configure system preferences</p>
-                  </div>
-                  <ArrowRightCircle className="h-5 w-5 text-primaryBlue-500 ml-auto" />
-                </Link>
-                <Link href="#" className="flex items-center p-4 bg-primaryBlue-50 rounded-md border border-primaryBlue-200 hover:bg-primaryBlue-100 transition-colors">
-                  <BarChart className="h-8 w-8 text-primaryBlue-600 mr-3" />
-                  <div>
-                    <h3 className="font-medium text-primaryBlue-900">Reports</h3>
-                    <p className="text-sm text-primaryBlue-700">View analytics and data</p>
-                  </div>
-                  <ArrowRightCircle className="h-5 w-5 text-primaryBlue-500 ml-auto" />
-                </Link>
               </div>
             </div>
             

@@ -38,33 +38,34 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* Modern dark theme with more vibrant colors */
+    --background: 222 18% 12%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 222 16% 16%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 222 16% 16%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
+    --primary: 210 100% 52%;
     --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 217.2 32.6% 20%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --muted: 217.2 32.6% 20%;
+    --muted-foreground: 215 20.2% 75%;
+    --accent: 198 93% 60%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --border: 217.2 32.6% 22%;
+    --input: 217.2 32.6% 22%;
+    --ring: 224.3 76.3% 55%;
 
-    /* Chart colors */
-    --chart-1: 217.2 91.2% 59.8%;
-    --chart-2: 262.1 83.3% 57.8%;
-    --chart-3: 316.6 73.3% 52.5%;
-    --chart-4: 0 84.2% 60.2%;
-    --chart-5: 48 96.5% 53.3%;
-    --chart-6: 142.1 76.2% 36.3%;
+    /* Vibrant chart colors for better visibility in dark mode */
+    --chart-1: 210 100% 55%;
+    --chart-2: 262 83% 65%;
+    --chart-3: 316 85% 65%;
+    --chart-4: 0 90% 65%;
+    --chart-5: 48 96% 60%;
+    --chart-6: 142 85% 50%;
   }
 }
 
@@ -76,6 +77,42 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+  }
+
+  /* Dark mode enhancements */
+  .dark .bg-white {
+    background-color: hsl(var(--card));
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    background-image: linear-gradient(to bottom, rgba(59, 130, 246, 0.03), rgba(0, 0, 0, 0));
+  }
+  
+  .dark .bg-primaryBlue-50 {
+    background-color: rgba(30, 41, 59, 0.8);
+    background-image: linear-gradient(to bottom right, rgba(59, 130, 246, 0.08), rgba(0, 0, 0, 0));
+    backdrop-filter: blur(8px);
+  }
+
+  .dark .border-primaryBlue-200 {
+    border-color: rgba(59, 130, 246, 0.2);
+  }
+
+  .dark .shadow-sm {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Card hover effects in dark mode */
+  .dark .hover\:bg-primaryBlue-100:hover {
+    background-color: rgba(59, 130, 246, 0.15);
+  }
+
+  /* Button enhancements for dark mode */
+  .dark button, .dark .btn, .dark a.btn {
+    transition: all 0.2s ease;
+  }
+
+  .dark button:hover, .dark .btn:hover, .dark a.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
   }
 }
 
@@ -96,8 +133,55 @@
 
 /* Smooth transitions for theme changes */
 * {
-  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, box-shadow, transform;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+  transition-duration: 200ms;
+}
+
+/* Dark mode text enhancements */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.dark .text-primaryBlue-600, 
+.dark .text-primaryBlue-700, 
+.dark .text-primaryBlue-800, 
+.dark .text-primaryBlue-900 {
+  color: rgba(191, 219, 254, 0.9);
+}
+
+.dark [class*="text-"] {
+  font-weight: 400;
+}
+
+/* Dark mode icon glow effect */
+.dark svg:not(.no-glow) {
+  filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.3));
+}
+
+/* Links in dark mode */
+.dark a:not(.btn) {
+  position: relative;
+  text-decoration: none;
+}
+
+.dark a:not(.btn):hover {
+  color: hsl(var(--primary));
+}
+
+.dark a:not(.btn):after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 1px;
+  bottom: -2px;
+  left: 0;
+  background-color: hsl(var(--primary));
+  transition: width 0.3s ease;
+}
+
+.dark a:not(.btn):hover:after {
+  width: 100%;
 }
 

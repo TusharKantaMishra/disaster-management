@@ -1,0 +1,41 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { authMiddleware } from '@clerk/nextjs';
+
+// Define public routes that don't require authentication
+const publicRoutes = [
+  '/',
+  '/sign-in',
+  '/sign-up',
+  '/api/webhook',
+  '/about',
+  '/contact',
+  '/api/env-debug',
+  '/api/gemini-test',
+  '/weather',
+];
+
+// Use Clerk's authMiddleware with a publicRoutes config
+export default authMiddleware({
+  publicRoutes: publicRoutes,
+  // This function runs after Clerk's authentication
+  afterAuth(auth, req) {
+    // If it's a public route, or the user is authenticated, allow access
+    if (publicRoutes.some(route => 
+      req.nextUrl.pathname === route || 
+      req.nextUrl.pathname.startsWith(`${route}/`)
+    ) || auth.userId) {
+      return NextResponse.next();
+    }
+    
+    // If not authenticated and not a public route, redirect to sign-in
+    const signInUrl = new URL('/sign-in', req.url);
+    signInUrl.searchParams.set('redirect_url', req.url);
+    return NextResponse.redirect(signInUrl);
+  }
+});
+
+// Configure the middleware to run on all routes except static files and _next
+export const config = {
+  matcher: ['/((?!.*\\..*|_next).*)', '/', '/(api|trpc)(.*)'],
+};

@@ -1360,24 +1360,7 @@ export default function InventoryManagement({ preloadedData, filterOptions }: In
         </main>
       </div>
 
-      {/* Add New Item Button */}
-      <motion.div
-        className="fixed bottom-6 right-6"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        <Button
-          onClick={() => setAddModalOpen(true)}
-          size="lg"
-          className="rounded-full h-14 w-14 shadow-lg bg-lime-500 hover:bg-lime-600 text-white"
-        >
-          <Plus className="h-6 w-6" />
-          <span className="sr-only">Add New Item</span>
-        </Button>
-      </motion.div>
+      {/* Add New Item Button removed as requested */}
 
       {/* Add New Item Modal */}
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>

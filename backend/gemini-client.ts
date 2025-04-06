@@ -248,7 +248,17 @@ function constructAnalysisPrompt(params: DisasterAnalysisParams): string {
   }
   
   prompt += `
-  Format your response in Markdown with clear headings, bullet points, and sections.
+  Format your response as plain text with clear sections. Use appropriate emojis throughout your response to enhance readability and engagement. For example:
+  - Use 🚨 for warnings
+  - Use 🏥 for medical resources
+  - Use 🏠 for shelter information
+  - Use 🌊 for flood related information
+  - Use 🔥 for fire related information
+  - Use 🌪️ for cyclone/storm related information
+  - Use 📊 for statistics
+  - Use 📅 for timeline information
+  - Use ⚠️ for caution
+  - Use other relevant emojis that match the disaster type and analysis sections
   `;
   
   return prompt;
@@ -303,7 +313,18 @@ async function generateVisualReport(params: DisasterAnalysisParams): Promise<str
     4. Geographic data visualization recommendations
     5. Data visualization best practices for disaster management
     
-    Format your response in Markdown with clear headings and structured sections for each visualization type.`;
+    Format your response as plain text with clear sections. Use appropriate emojis throughout your response to enhance readability and engagement. For example:
+    - Use 🗺️ for maps and geographic information
+    - Use 📊 for charts and statistics
+    - Use 📈 for trends and analysis
+    - Use 🏥 for medical resources
+    - Use 🏠 for shelter information
+    - Use 🌊 for flood related information
+    - Use 🔥 for fire related information
+    - Use 🌪️ for cyclone/storm related information
+    - Use 📅 for timeline information
+    - Use ⚠️ for caution areas
+    - Use other relevant emojis that match the disaster type and visualization sections`;
     
     console.log('Sending visual report prompt to Gemini API. Prompt length:', visualPrompt.length);
     

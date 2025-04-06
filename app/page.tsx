@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield, User, CloudSun, Box, BarChart3, Sliders, MapPin, Phone, Mail, Twitter, Facebook, Linkedin, Instagram, Brain } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { UserButton } from '@/components/user-button';
+import { SignedIn, SignedOut } from '@clerk/nextjs';
 
 export default function Home() {
   const [loaded, setLoaded] = useState(false);
@@ -94,18 +96,12 @@ export default function Home() {
             <Shield className="text-primary h-6 w-6" />
             <span className="text-foreground font-bold text-xl">Disaster Management</span>
           </div>
-          <div className="flex items-center space-x-6">
-            <Link href="/" className="text-foreground/80 hover:text-primary transition-colors cursor-pointer whitespace-nowrap">Home</Link>
-            <Link href="/weather" className="text-foreground/80 hover:text-primary transition-colors cursor-pointer whitespace-nowrap">Weather</Link>
-            <Link href="/inventory" className="text-foreground/80 hover:text-primary transition-colors cursor-pointer whitespace-nowrap">Resources</Link>
-            <Link href="/dashboard" className="text-foreground/80 hover:text-primary transition-colors cursor-pointer whitespace-nowrap">Dashboard</Link>
-            <Link href="/ai-analysis" className="text-foreground/80 hover:text-primary transition-colors cursor-pointer whitespace-nowrap">AI Analysis</Link>
+          <div className="flex items-center">
             <div className="flex items-center space-x-2">
               <ThemeToggle />
-              <Button variant="outline" className="ml-2">
-                <User className="h-4 w-4 mr-2" />
-                Sign In
-              </Button>
+              <div className="ml-2">
+                <UserButton />
+              </div>
             </div>
           </div>
         </div>
@@ -216,27 +212,29 @@ export default function Home() {
                 </Link>
               </CardFooter>
             </Card>
-            {/* Card 4 */}
+
+            {/* Card 4 - Disaster Map */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden cursor-pointer">
               <CardHeader className="pb-2">
-                <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-4">
-                  <Sliders className="text-amber-600 h-6 w-6" />
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
+                  <MapPin className="text-orange-600 h-6 w-6" />
                 </div>
-                <CardTitle className="text-xl font-bold text-[#2B3B1B]">System Settings</CardTitle>
+                <CardTitle className="text-xl font-bold text-[#2B3B1B]">Disaster Map</CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-gray-600 mb-4">
-                  Customize the system to meet specific regional requirements and preferences.
+                  View real-time global disaster data from NASA's EONET API with interactive mapping.
                 </CardDescription>
               </CardContent>
               <CardFooter>
-                <Link href="/settings" passHref style={{ width: '100%' }}>
+                <Link href="/disaster-map" passHref style={{ width: '100%' }}>
                   <Button variant="outline" className="border-[#2B3B1B] text-[#2B3B1B] hover:bg-[#2B3B1B] hover:text-white transition-colors !rounded-button whitespace-nowrap w-full cursor-pointer">
-                    Configure Settings
+                    Explore Map
                   </Button>
                 </Link>
               </CardFooter>
             </Card>
+
             {/* Card 5 - AI Disaster Analysis */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden cursor-pointer">
               <CardHeader className="pb-2">
@@ -327,7 +325,6 @@ export default function Home() {
                 <li><Link href="/inventory" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">Inventory Management</Link></li>
                 <li><Link href="/weather" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">Weather Forecasting</Link></li>
                 <li><Link href="/dashboard" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">Dashboard</Link></li>
-                <li><Link href="/settings" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">System Settings</Link></li>
                 <li><Link href="/ai-analysis" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">AI Disaster Analysis</Link></li>
                 <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors cursor-pointer">Resource Allocation</a></li>
               </ul>

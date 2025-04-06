@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,11 +10,12 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Brain, ArrowRight, BarChart3, ClipboardList, AlertTriangle, CloudLightning, Loader2, Info, Download } from 'lucide-react';
+import { Brain, ArrowRight, BarChart3, ClipboardList, AlertTriangle, CloudLightning, Loader2, Info, Download, FileText } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import Link from 'next/link';
 import { DISASTER_TYPES, DEFAULT_ANALYSIS_OPTIONS } from "./analysis-types";
 import { markdownToHtml, extractRecommendations, extractTimeline } from "./markdown-utils";
+import { generatePdfFromHtml, generatePdfFromText } from "@/lib/pdf-utils";
 
 const INDIAN_STATES_AND_UTS = [
   "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
@@ -30,7 +31,9 @@ const INDIAN_STATES_AND_UTS = [
 export default function AIAnalysisPage() {
   // UI state
   const [loading, setLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('results');
+  const resultsRef = useRef<HTMLDivElement>(null);
   
   // Analysis parameters
   const [query, setQuery] = useState('');
@@ -47,6 +50,39 @@ export default function AIAnalysisPage() {
   // Extracted sections for tabs
   const [recommendations, setRecommendations] = useState<string>('');
   const [timeline, setTimeline] = useState<string>('');
+
+  // PDF Download Handler
+  const handleDownloadPdf = async () => {
+    try {
+      if (!analysisResult) {
+        console.error('No analysis result to download');
+        return;
+      }
+      
+      setPdfLoading(true);
+      
+      // Generate a filename based on the selected parameters
+      const formattedDate = new Date().toISOString().slice(0, 10);
+      const sanitizedDisaster = selectedDisaster.replace(/\s+/g, '-').toLowerCase();
+      const sanitizedState = selectedState ? selectedState.replace(/\s+/g, '-').toLowerCase() : 'all-india';
+      const filename = `${sanitizedDisaster}-analysis-${sanitizedState}-${formattedDate}.pdf`;
+      
+      // Choose the PDF generation method based on the current content
+      if (resultsRef.current) {
+        // If we have HTML content, use the HTML-to-PDF method
+        await generatePdfFromHtml(resultsRef.current, filename);
+      } else {
+        // Fallback to plain text method
+        const title = `${selectedDisaster} Analysis for ${selectedState || 'All India'}`;
+        generatePdfFromText(analysisResult, title, filename);
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   // Extract key information from analysis results to use in different tabs
   useEffect(() => {
@@ -382,7 +418,30 @@ ${error?.message || 'Unknown error'}
           <div className="lg:col-span-2">
             <Card className="h-full">
               <CardHeader>
-                <CardTitle>Analysis Results</CardTitle>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Analysis Results</CardTitle>
+                  {analysisResult && (
+                    <Button
+                      onClick={handleDownloadPdf}
+                      variant="outline"
+                      size="sm"
+                      disabled={pdfLoading}
+                      className="flex items-center gap-1"
+                    >
+                      {pdfLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span>Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <FileText className="h-4 w-4" />
+                          <span>Download PDF</span>
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <Tabs defaultValue="results">
@@ -394,7 +453,11 @@ ${error?.message || 'Unknown error'}
 
                   <TabsContent value="results" className="min-h-[500px]">
                     {analysisResult ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: analysisResult.replace(/\n/g, '<br />') }} />
+                      <div 
+                        ref={resultsRef}
+                        className="prose prose-sm dark:prose-invert max-w-none" 
+                        dangerouslySetInnerHTML={{ __html: analysisResult.replace(/\n/g, '<br />') }} 
+                      />
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full text-center">
                         <Brain className="h-16 w-16 text-muted-foreground mb-4 opacity-20" />

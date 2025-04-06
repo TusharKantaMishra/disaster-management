@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { ThemeProvider } from '@/components/ui/theme-provider'
+import { ClerkProvider } from '@clerk/nextjs'
+import { HomeButton } from '@/components/home-button'
 
 export const metadata: Metadata = {
   title: 'Disaster Management',
@@ -14,17 +16,20 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <HomeButton />
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }
