@@ -1,5 +1,6 @@
+
 # dependencies
-/node_modules
+node_modules
 /.pnp
 .pnp.js
 .yarn/install-state.gz
@@ -34,19 +35,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# IDE files
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# API keys and secrets
-api-keys.json
-secrets.json
-
-# Logs
-logs
-*.log
+# clerk configuration (can include secrets)
+/.clerk/
 
 # Supabase
 .supabase/
+
+# IDE files
+.vscode/
+.idea/
