@@ -1076,6 +1076,16 @@ export default function InventoryManagement({ preloadedData, filterOptions }: In
       {/* Main Content */}
       <div className="flex-1 flex flex-col h-full">
         <main className="flex-1 overflow-auto p-4 bg-white">
+          {/* Add Button */}
+          <div className="mb-4">
+            <Button
+              onClick={() => setAddModalOpen(true)}
+              className="bg-lime-500 hover:bg-lime-600 text-white flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Item
+            </Button>
+          </div>
 
           {/* Filters */}
 

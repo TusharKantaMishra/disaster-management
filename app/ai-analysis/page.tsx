@@ -6,105 +6,187 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Brain, ArrowRight, BarChart3, ClipboardList, AlertTriangle, CloudLightning } from 'lucide-react';
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Brain, ArrowRight, BarChart3, ClipboardList, AlertTriangle, CloudLightning, Loader2, Info, Download } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import Link from 'next/link';
-import { getUniqueStates } from '@/backend/inventory';
+import { DISASTER_TYPES, DEFAULT_ANALYSIS_OPTIONS } from "./analysis-types";
+import { markdownToHtml, extractRecommendations, extractTimeline } from "./markdown-utils";
+
+const INDIAN_STATES_AND_UTS = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand",
+  "Karnataka", "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur",
+  "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura",
+  "Uttar Pradesh", "Uttarakhand", "West Bengal",
+  "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi", "Jammu and Kashmir", "Ladakh", "Lakshadweep", "Puducherry"
+];
 
 export default function AIAnalysisPage() {
+  // UI state
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('results');
+  
+  // Analysis parameters
   const [query, setQuery] = useState('');
   const [selectedState, setSelectedState] = useState('');
   const [selectedDisaster, setSelectedDisaster] = useState('');
   const [analysisResult, setAnalysisResult] = useState<null | string>(null);
-  const [states, setStates] = useState<string[]>([]);
-  const [loadingStates, setLoadingStates] = useState(true);
-  const [stateError, setStateError] = useState<string | null>(null);
+  
+  // Analysis options
+  const [useHistoricalData, setUseHistoricalData] = useState(DEFAULT_ANALYSIS_OPTIONS.useHistoricalData);
+  const [detailedResponse, setDetailedResponse] = useState(DEFAULT_ANALYSIS_OPTIONS.detailedResponse);
+  const [confidenceScores, setConfidenceScores] = useState(DEFAULT_ANALYSIS_OPTIONS.confidenceScores);
+  const [suggestPreventiveMeasures, setSuggestPreventiveMeasures] = useState(DEFAULT_ANALYSIS_OPTIONS.suggestPreventiveMeasures);
+  
+  // Extracted sections for tabs
+  const [recommendations, setRecommendations] = useState<string>('');
+  const [timeline, setTimeline] = useState<string>('');
 
-  // Fetch states from Supabase on component mount
+  // Extract key information from analysis results to use in different tabs
   useEffect(() => {
-    async function fetchStates() {
-      setLoadingStates(true);
-      setStateError(null);
+    if (analysisResult) {
+      const extractedRecommendations = extractRecommendations(analysisResult);
+      const extractedTimeline = extractTimeline(analysisResult);
       
-      try {
-        const statesList = await getUniqueStates();
-        setStates(statesList || []);
-      } catch (error) {
-        console.error('Error fetching states:', error);
-        setStateError('Failed to load states. Please try again later.');
-      } finally {
-        setLoadingStates(false);
-      }
+      setRecommendations(extractedRecommendations);
+      setTimeline(extractedTimeline);
+    }
+  }, [analysisResult]);
+  
+  // Generate disaster analysis report by calling the API
+  const generateAnalysis = async () => {
+    if (!selectedDisaster) {
+      alert('Please select a disaster type');
+      return;
     }
     
-    fetchStates();
-  }, []);
-  
-  // Function to generate AI analysis
-  const generateAnalysis = async () => {
-    setLoading(true);
-    // In a real implementation, this would call the Gemini API
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API delay
+    try {
+      setLoading(true);
+      setAnalysisResult(null);
+      setRecommendations('');
+      setTimeline('');
+      
+      // Build request body
+      const requestBody = {
+        state: selectedState,
+        disasterType: selectedDisaster,
+        customQuery: query.trim(),
+        options: {
+          historicalData: useHistoricalData,
+          detailedResponse: detailedResponse,
+          confidenceScores: confidenceScores,
+          preventiveMeasures: suggestPreventiveMeasures
+        }
+      };
+      
+      // Make API request
+      const response = await fetch('/api/ai-analysis', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+      
+      if (!response.ok) {
+        // Try to extract error details from the response
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.details || errorData.error || `API error: ${response.status}`;
+        throw new Error(errorMessage);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.analysis) {
+        throw new Error('No analysis data returned from API');
+      }
+      
+      setAnalysisResult(data.analysis);
+      
+      // Auto-switch to results tab when analysis is complete
+      setActiveTab('results');
+    } catch (error: any) {
+      // Improved error logging with full details
+      console.error('Error generating analysis:', {
+        message: error?.message,
+        name: error?.name,
+        stack: error?.stack,
+        toString: error?.toString()
+      });
+      
+      // Check if it's an API key related error
+      const isAuthError = error?.message?.includes('API key') || 
+                        error?.message?.includes('credentials') || 
+                        error?.message?.includes('auth') || 
+                        error?.message?.includes('NEXT_PUBLIC_GEMINI_API_KEY');
+                        
+      if (isAuthError) {
+        setAnalysisResult(`# Authentication Error
 
-    const mockAnalysis = `# Disaster Analysis Report for ${selectedState || 'All States'}
-    
-## Predicted Impact Areas
-- **High Risk Zones**: Northern districts of ${selectedState || 'the selected region'} are at 73% risk level
-- **Medium Risk Zones**: Central areas show moderate vulnerability (45% risk)
-- **Low Risk Zones**: Southern districts have minimal exposure (12% risk)
+There was a problem authenticating with the Gemini AI service. Please check the API key configuration.
 
-## Resource Allocation Recommendations
-1. **Emergency Medical Supplies**: Increase by 35% in high risk zones
-2. **Temporary Shelters**: Deploy 20 additional units in northern districts
-3. **Food & Water**: Pre-position 3-day supplies for estimated 5,000 affected people
+## Error Details
+${error?.message || 'Unknown error'}
 
-## Timeline Projections
-- **72 Hours Pre-Event**: Complete evacuation of highest risk areas
-- **48 Hours Pre-Event**: Position all emergency response teams
-- **24 Hours Pre-Event**: Activate all emergency protocols and communication systems
+## Troubleshooting Steps
+1. Verify the NEXT_PUBLIC_GEMINI_API_KEY in your .env.local file
+2. Make sure the API key is valid and not expired
+3. Check for any restrictions on your Google AI Studio account
+4. Restart the development server after changing environment variables`);
+      } else {
+        setAnalysisResult(`# Analysis Error
 
-The AI confidence level for this analysis is 87% based on historical data patterns and current environmental conditions.`;
+Sorry, an error occurred while generating the analysis. Please try again later.
 
-    setAnalysisResult(mockAnalysis);
-    setLoading(false);
+## Error Details
+${error?.message || 'Unknown error'}
+
+## What to try
+- Check your internet connection
+- Try a different disaster type or state
+- Simplify your custom query if you provided one
+- Check server logs for more details`);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
+      {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-background border-b border-border/40 px-6 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2">
-            <Link href="/" className="flex items-center space-x-2">
-              <Brain className="text-primary h-6 w-6" />
-              <span className="text-foreground font-bold text-xl">AI Disaster Analysis</span>
-            </Link>
-          </div>
+          <Link href="/" className="flex items-center space-x-2">
+            <Brain className="text-primary h-6 w-6" />
+            <span className="text-foreground font-bold text-xl">AI Disaster Analysis</span>
+          </Link>
           <div className="flex items-center space-x-6">
-            <Link href="/" className="text-foreground/80 hover:text-primary transition-colors cursor-pointer whitespace-nowrap">Home</Link>
-            <Link href="/weather" className="text-foreground/80 hover:text-primary transition-colors cursor-pointer whitespace-nowrap">Weather</Link>
-            <Link href="/inventory" className="text-foreground/80 hover:text-primary transition-colors cursor-pointer whitespace-nowrap">Resources</Link>
-            <Link href="/dashboard" className="text-foreground/80 hover:text-primary transition-colors cursor-pointer whitespace-nowrap">Dashboard</Link>
-            <div className="flex items-center space-x-2">
-              <ThemeToggle />
-            </div>
+            <Link href="/" className="text-muted-foreground hover:text-primary">Home</Link>
+            <Link href="/weather" className="text-muted-foreground hover:text-primary">Weather</Link>
+            <Link href="/inventory" className="text-muted-foreground hover:text-primary">Resources</Link>
+            <Link href="/dashboard" className="text-muted-foreground hover:text-primary">Dashboard</Link>
+            <ThemeToggle />
           </div>
         </div>
       </nav>
 
-      {/* Main Content */}
+      {/* Page Body */}
       <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">AI Disaster Analysis</h1>
-          <p className="text-muted-foreground text-lg max-w-3xl">
-            Leverage the power of artificial intelligence to analyze disaster data, predict resource needs, and optimize emergency response plans.
-          </p>
-        </div>
+        <h1 className="text-4xl font-bold mb-4">AI Disaster Analysis</h1>
+        <p className="text-muted-foreground mb-12 text-lg max-w-3xl">
+          Leverage the power of artificial intelligence to analyze disaster data, predict resource needs, and optimize emergency response plans.
+        </p>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Input Controls */}
-          <div className="lg:col-span-1 space-y-6">
+          {/* Left Panel */}
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Analysis Parameters</CardTitle>
@@ -112,66 +194,138 @@ The AI confidence level for this analysis is 87% based on historical data patter
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">State/Region</label>
-                  <Select value={selectedState} onValueChange={setSelectedState} disabled={loadingStates}>
+                  <label className="text-sm font-medium mb-1 block">State/Region</label>
+                  <Select value={selectedState} onValueChange={setSelectedState}>
                     <SelectTrigger>
-                      <SelectValue placeholder={loadingStates ? "Loading states..." : stateError ? "Error loading states" : "Select state or region"} />
+                      <SelectValue placeholder="Select a state or territory" />
                     </SelectTrigger>
                     <SelectContent>
-                      {states.length > 0 ? (
-                        states.map((state) => (
-                          <SelectItem key={state} value={state.toLowerCase().replace(/\s+/g, '')}>
-                            {state}
-                          </SelectItem>
-                        ))
-                      ) : stateError ? (
-                        <SelectItem value="error" disabled>{stateError}</SelectItem>
-                      ) : loadingStates ? (
-                        <SelectItem value="loading" disabled>Loading...</SelectItem>
-                      ) : (
-                        <SelectItem value="none" disabled>No states available</SelectItem>
-                      )}
+                      {INDIAN_STATES_AND_UTS.map(state => (
+                        <SelectItem key={state} value={state}>{state}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Disaster Type</label>
+                  <label className="text-sm font-medium mb-1 block">Disaster Type</label>
                   <Select value={selectedDisaster} onValueChange={setSelectedDisaster}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select disaster type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="flood">Flood</SelectItem>
-                      <SelectItem value="cyclone">Cyclone</SelectItem>
-                      <SelectItem value="earthquake">Earthquake</SelectItem>
-                      <SelectItem value="drought">Drought</SelectItem>
-                      <SelectItem value="landslide">Landslide</SelectItem>
+                      {DISASTER_TYPES.map(disaster => (
+                        <SelectItem key={disaster.value} value={disaster.value}>
+                          {disaster.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Custom Query</label>
-                  <Textarea 
-                    placeholder="Enter specific details or questions (optional)"
-                    className="min-h-[120px]"
+                  <label className="text-sm font-medium mb-1 block">Custom Query</label>
+                  <Textarea
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Add specific details or conditions (optional)"
+                    className="min-h-[100px]"
                   />
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-sm font-medium mb-1 block">Analysis Options</label>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex space-x-2 items-center">
+                        <Label htmlFor="historical-data" className="text-sm">Include Historical Data</Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="w-80">Enriches analysis with past disaster data for the selected region</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <Switch
+                        id="historical-data"
+                        checked={useHistoricalData}
+                        onCheckedChange={setUseHistoricalData}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex space-x-2 items-center">
+                        <Label htmlFor="detailed-response" className="text-sm">Detailed Response</Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="w-80">Provides comprehensive analysis with detailed sections and recommendations</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <Switch
+                        id="detailed-response"
+                        checked={detailedResponse}
+                        onCheckedChange={setDetailedResponse}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex space-x-2 items-center">
+                        <Label htmlFor="confidence-scores" className="text-sm">Include Confidence Scores</Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="w-80">Adds AI confidence levels to predictions and recommendations</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <Switch
+                        id="confidence-scores"
+                        checked={confidenceScores}
+                        onCheckedChange={setConfidenceScores}
+                      />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex space-x-2 items-center">
+                        <Label htmlFor="preventive-measures" className="text-sm">Suggest Preventive Measures</Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="w-80">Includes long-term preventive strategies and infrastructure recommendations</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <Switch
+                        id="preventive-measures"
+                        checked={suggestPreventiveMeasures}
+                        onCheckedChange={setSuggestPreventiveMeasures}
+                      />
+                    </div>
+                  </div>
                 </div>
               </CardContent>
               <CardFooter>
-                <Button 
-                  className="w-full bg-primary hover:bg-primary/90"
-                  onClick={generateAnalysis}
-                  disabled={loading || loadingStates || !!stateError}
-                >
-                  {loading ? 'Analyzing...' : 
-                   loadingStates ? 'Loading states...' : 
-                   stateError ? 'Cannot analyze' : 
-                   'Generate Analysis'}
-                  {!loading && !loadingStates && !stateError && <ArrowRight className="ml-2 h-4 w-4" />}
+                <Button className="w-full" onClick={generateAnalysis} disabled={loading}>
+                  {loading ? 'Analyzing...' : 'Generate Analysis'}
+                  {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
                 </Button>
               </CardFooter>
             </Card>
@@ -179,97 +333,88 @@ The AI confidence level for this analysis is 87% based on historical data patter
             <Card>
               <CardHeader>
                 <CardTitle>Analysis Types</CardTitle>
-                <CardDescription>Available AI analysis capabilities</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="bg-blue-100 p-2 rounded-md">
+                <div className="flex gap-3 items-start">
+                  <div className="p-2 bg-blue-100 rounded-md">
                     <BarChart3 className="text-blue-600 h-5 w-5" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-foreground">Predictive Impact Analysis</h4>
-                    <p className="text-muted-foreground text-sm">Forecast the potential impact of disasters on different regions</p>
+                    <h4 className="font-medium">Predictive Impact Analysis</h4>
+                    <p className="text-muted-foreground text-sm">Forecast potential impact zones</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start space-x-3">
-                  <div className="bg-green-100 p-2 rounded-md">
+
+                <div className="flex gap-3 items-start">
+                  <div className="p-2 bg-green-100 rounded-md">
                     <ClipboardList className="text-green-600 h-5 w-5" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-foreground">Resource Optimization</h4>
-                    <p className="text-muted-foreground text-sm">Optimize resource allocation based on predicted needs</p>
+                    <h4 className="font-medium">Resource Optimization</h4>
+                    <p className="text-muted-foreground text-sm">Recommend efficient resource allocation</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start space-x-3">
-                  <div className="bg-amber-100 p-2 rounded-md">
-                    <AlertTriangle className="text-amber-600 h-5 w-5" />
+
+                <div className="flex gap-3 items-start">
+                  <div className="p-2 bg-yellow-100 rounded-md">
+                    <AlertTriangle className="text-yellow-600 h-5 w-5" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-foreground">Early Warning System</h4>
-                    <p className="text-muted-foreground text-sm">Generate early warnings based on environmental indicators</p>
+                    <h4 className="font-medium">Early Warning System</h4>
+                    <p className="text-muted-foreground text-sm">Preemptive alerts based on risk indicators</p>
                   </div>
                 </div>
-                
-                <div className="flex items-start space-x-3">
-                  <div className="bg-purple-100 p-2 rounded-md">
+
+                <div className="flex gap-3 items-start">
+                  <div className="p-2 bg-purple-100 rounded-md">
                     <CloudLightning className="text-purple-600 h-5 w-5" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-foreground">Weather Pattern Analysis</h4>
-                    <p className="text-muted-foreground text-sm">Analyze weather patterns to predict potential disasters</p>
+                    <h4 className="font-medium">Weather Pattern Analysis</h4>
+                    <p className="text-muted-foreground text-sm">Pattern detection for proactive planning</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Right Column - Analysis Results */}
+          {/* Right Panel */}
           <div className="lg:col-span-2">
             <Card className="h-full">
               <CardHeader>
                 <CardTitle>Analysis Results</CardTitle>
-                <CardDescription>Insights generated by AI based on your parameters</CardDescription>
               </CardHeader>
               <CardContent>
-                <Tabs defaultValue="results" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                <Tabs defaultValue="results">
+                  <TabsList className="grid w-full grid-cols-3 mb-4">
                     <TabsTrigger value="results">Results</TabsTrigger>
                     <TabsTrigger value="visualizations">Visualizations</TabsTrigger>
                     <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
                   </TabsList>
+
                   <TabsContent value="results" className="min-h-[500px]">
                     {analysisResult ? (
-                      <div className="prose prose-sm dark:prose-invert max-w-none">
-                        <div dangerouslySetInnerHTML={{ __html: analysisResult.replace(/\n/g, '<br />') }} />
-                      </div>
+                      <div className="prose prose-sm dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: analysisResult.replace(/\n/g, '<br />') }} />
                     ) : (
-                      <div className="flex flex-col items-center justify-center h-[500px] text-center">
-                        <Brain className="text-muted-foreground h-16 w-16 mb-4 opacity-20" />
-                        <h3 className="text-lg font-medium text-foreground mb-2">No Analysis Generated Yet</h3>
-                        <p className="text-muted-foreground max-w-md">
-                          Select your parameters and click "Generate Analysis" to see AI-powered disaster insights.
-                        </p>
+                      <div className="flex flex-col items-center justify-center h-full text-center">
+                        <Brain className="h-16 w-16 text-muted-foreground mb-4 opacity-20" />
+                        <h3 className="text-lg font-medium mb-2">No Analysis Generated Yet</h3>
+                        <p className="text-muted-foreground">Select your parameters and click "Generate Analysis" to begin.</p>
                       </div>
                     )}
                   </TabsContent>
+
                   <TabsContent value="visualizations" className="min-h-[500px]">
-                    <div className="flex flex-col items-center justify-center h-[500px] text-center">
-                      <BarChart3 className="text-muted-foreground h-16 w-16 mb-4 opacity-20" />
-                      <h3 className="text-lg font-medium text-foreground mb-2">Visualizations Coming Soon</h3>
-                      <p className="text-muted-foreground max-w-md">
-                        This feature will display interactive charts and maps based on AI analysis.
-                      </p>
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                      <BarChart3 className="h-16 w-16 text-muted-foreground mb-4 opacity-20" />
+                      <h3 className="text-lg font-medium mb-2">Visualizations Coming Soon</h3>
                     </div>
                   </TabsContent>
+
                   <TabsContent value="recommendations" className="min-h-[500px]">
-                    <div className="flex flex-col items-center justify-center h-[500px] text-center">
-                      <ClipboardList className="text-muted-foreground h-16 w-16 mb-4 opacity-20" />
-                      <h3 className="text-lg font-medium text-foreground mb-2">Recommendations Coming Soon</h3>
-                      <p className="text-muted-foreground max-w-md">
-                        This feature will provide detailed action recommendations based on the analysis.
-                      </p>
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                      <ClipboardList className="h-16 w-16 text-muted-foreground mb-4 opacity-20" />
+                      <h3 className="text-lg font-medium mb-2">Recommendations Coming Soon</h3>
                     </div>
                   </TabsContent>
                 </Tabs>
