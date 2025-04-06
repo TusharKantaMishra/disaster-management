@@ -213,28 +213,6 @@ export default function Home() {
               </CardFooter>
             </Card>
 
-            {/* Card 4 - Disaster Map */}
-            <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden cursor-pointer">
-              <CardHeader className="pb-2">
-                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
-                  <MapPin className="text-orange-600 h-6 w-6" />
-                </div>
-                <CardTitle className="text-xl font-bold text-[#2B3B1B]">Disaster Map</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-gray-600 mb-4">
-                  View real-time global disaster data from NASA's EONET API with interactive mapping.
-                </CardDescription>
-              </CardContent>
-              <CardFooter>
-                <Link href="/disaster-map" passHref style={{ width: '100%' }}>
-                  <Button variant="outline" className="border-[#2B3B1B] text-[#2B3B1B] hover:bg-[#2B3B1B] hover:text-white transition-colors !rounded-button whitespace-nowrap w-full cursor-pointer">
-                    Explore Map
-                  </Button>
-                </Link>
-              </CardFooter>
-            </Card>
-
             {/* Card 5 - AI Disaster Analysis */}
             <Card className="bg-white border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden cursor-pointer">
               <CardHeader className="pb-2">
