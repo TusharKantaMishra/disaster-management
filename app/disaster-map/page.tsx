@@ -1,7 +1,9 @@
 'use client';
 
-// Force dynamic rendering to prevent static export issues
+// These export configurations ensure the page works correctly in production
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs'; // Use Node.js runtime
+export const preferredRegion = 'sin1'; // Singapore region for better performance
 
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Polygon, Marker, Tooltip } from 'react-leaflet';
