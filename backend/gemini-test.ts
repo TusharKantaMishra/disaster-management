@@ -17,7 +17,7 @@ export async function testGeminiConnection(): Promise<string> {
     console.log('Initialized GoogleGenerativeAI client');
 
     // Get the model
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     console.log('Got generative model');
 
     // Execute a simple prompt

@@ -291,9 +291,9 @@ async function generateVisualReport(params: DisasterAnalysisParams): Promise<str
       throw new Error('Gemini API client is not initialized. Please ensure your API key is valid.');
     }
     
-    // Get the Gemini 2.0 Pro model with better support for structured content
+    // Get the Gemini 2.0 Flash model for faster responses
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-pro",
+      model: "gemini-2.0-flash",
       safetySettings,
       generationConfig: {
         temperature: 0.7,
