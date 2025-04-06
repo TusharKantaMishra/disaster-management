@@ -18,8 +18,8 @@ export const apiConfig = {
   // geminiApiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY || '', // From env var directly
   
   // API model and endpoint configuration
-  model: 'gemini-pro',
-  endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro',
+  model: 'gemini-2.0-flash',
+  endpoint: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash',
   apiVersion: 'v1beta',
   
   // Mock mode disabled - using real API calls to Gemini

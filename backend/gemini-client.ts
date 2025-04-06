@@ -89,9 +89,9 @@ async function generateDisasterAnalysis(params: DisasterAnalysisParams): Promise
       throw new Error('Gemini API client is not initialized. Please ensure your API key is valid.');
     }
     
-    // Get the Gemini 2.0 Flash model
+    // Get the Gemini model specified in configuration
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: apiConfig.model,
       safetySettings,
       generationConfig: {
         temperature: 0.7,
@@ -107,7 +107,7 @@ async function generateDisasterAnalysis(params: DisasterAnalysisParams): Promise
     
     try {
       // Generate content
-      console.log('Attempting to generate content with Gemini 2.0 Flash model...');
+      console.log(`Attempting to generate content with ${apiConfig.model} model...`);
       const result = await model.generateContent(prompt);
       console.log('Content generation successful, getting response...');
       const response = await result.response;
@@ -291,9 +291,9 @@ async function generateVisualReport(params: DisasterAnalysisParams): Promise<str
       throw new Error('Gemini API client is not initialized. Please ensure your API key is valid.');
     }
     
-    // Get the Gemini 2.0 Pro model with better support for structured content
+    // Get the Gemini model specified in configuration
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-pro",
+      model: apiConfig.model,
       safetySettings,
       generationConfig: {
         temperature: 0.7,
@@ -329,7 +329,7 @@ async function generateVisualReport(params: DisasterAnalysisParams): Promise<str
     console.log('Sending visual report prompt to Gemini API. Prompt length:', visualPrompt.length);
     
     // Generate content
-    console.log('Attempting to generate visual report with Gemini 2.0 Pro model...');
+    console.log(`Attempting to generate visual report with ${apiConfig.model} model...`);
     const result = await model.generateContent(visualPrompt);
     console.log('Content generation successful, getting response...');
     const response = await result.response;
