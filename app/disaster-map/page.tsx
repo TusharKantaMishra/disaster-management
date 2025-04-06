@@ -1,5 +1,8 @@
 'use client';
 
+// Force dynamic rendering to prevent static export issues
+export const dynamic = 'force-dynamic';
+
 import React, { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup, Polygon, Marker, Tooltip } from 'react-leaflet';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
